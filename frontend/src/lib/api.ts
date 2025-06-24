@@ -92,65 +92,73 @@ class ApiClient {
 
   // Cook profiles
   async getCookProfiles(): Promise<ApiResponse<CookProfile[]>> {
-    return this.request<CookProfile[]>('/cooks/profiles');
+    return this.request<CookProfile[]>('/cooks/');
   }
 
   async getCookProfile(id: number): Promise<ApiResponse<CookProfile>> {
-    return this.request<CookProfile>(`/cooks/profiles/${id}`);
+    return this.request<CookProfile>(`/cooks/${id}`);
+  }
+
+  async getMyCookProfile(): Promise<ApiResponse<CookProfile>> {
+    return this.request<CookProfile>('/cooks/me/profile');
   }
 
   async createCookProfile(profile: { name: string; bio?: string; photo_url?: string; delivery_radius?: number }): Promise<ApiResponse<CookProfile>> {
-    return this.request<CookProfile>('/cooks/profiles', {
+    return this.request<CookProfile>('/cooks/', {
       method: 'POST',
       body: JSON.stringify(profile),
     });
   }
 
   async updateCookProfile(id: number, profile: Partial<{ name: string; bio: string; photo_url: string; delivery_radius: number }>): Promise<ApiResponse<CookProfile>> {
-    return this.request<CookProfile>(`/cooks/profiles/${id}`, {
+    return this.request<CookProfile>(`/cooks/${id}`, {
       method: 'PUT',
       body: JSON.stringify(profile),
     });
   }
 
   async deleteCookProfile(id: number): Promise<ApiResponse<void>> {
-    return this.request<void>(`/cooks/profiles/${id}`, {
+    return this.request<void>(`/cooks/${id}`, {
       method: 'DELETE',
     });
   }
 
   // Menu items
   async getMenuItems(): Promise<ApiResponse<MenuItem[]>> {
-    return this.request<MenuItem[]>('/menu/items');
+    return this.request<MenuItem[]>('/menu/');
   }
 
   async getMenuItem(id: number): Promise<ApiResponse<MenuItem>> {
-    return this.request<MenuItem>(`/menu/items/${id}`);
+    return this.request<MenuItem>(`/menu/${id}`);
+  }
+
+  async getCookMenuItems(cookId: number): Promise<ApiResponse<MenuItem[]>> {
+    return this.request<MenuItem[]>(`/menu/cook/${cookId}`);
   }
 
   async createMenuItem(item: { title: string; description: string; price: number; photo_url?: string; is_available?: boolean }): Promise<ApiResponse<MenuItem>> {
-    return this.request<MenuItem>('/menu/items', {
+    return this.request<MenuItem>('/menu/', {
       method: 'POST',
       body: JSON.stringify(item),
     });
   }
 
   async updateMenuItem(id: number, item: Partial<{ title: string; description: string; price: number; photo_url: string; is_available: boolean }>): Promise<ApiResponse<MenuItem>> {
-    return this.request<MenuItem>(`/menu/items/${id}`, {
+    return this.request<MenuItem>(`/menu/${id}`, {
       method: 'PUT',
       body: JSON.stringify(item),
     });
   }
 
   async deleteMenuItem(id: number): Promise<ApiResponse<void>> {
-    return this.request<void>(`/menu/items/${id}`, {
+    return this.request<void>(`/menu/${id}`, {
       method: 'DELETE',
     });
   }
 
   // Orders
   async getOrders(): Promise<ApiResponse<Order[]>> {
-    return this.request<Order[]>('/orders');
+    return this.request<Order[]>('/orders/');
   }
 
   async getOrder(id: number): Promise<ApiResponse<Order>> {
@@ -158,7 +166,7 @@ class ApiClient {
   }
 
   async createOrder(order: { menu_item_id: number; quantity?: number; special_instructions?: string }): Promise<ApiResponse<Order>> {
-    return this.request<Order>('/orders', {
+    return this.request<Order>('/orders/', {
       method: 'POST',
       body: JSON.stringify(order),
     });
@@ -183,7 +191,7 @@ class ApiClient {
   }
 
   async createMessage(message: { order_id: number; content: string }): Promise<ApiResponse<Message>> {
-    return this.request<Message>('/messages', {
+    return this.request<Message>('/messages/', {
       method: 'POST',
       body: JSON.stringify(message),
     });
