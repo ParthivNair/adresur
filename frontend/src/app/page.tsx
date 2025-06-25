@@ -1,59 +1,77 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import LoginForm from '@/components/LoginForm';
-import ApiTester from '@/components/ApiTester';
+import { apiClient } from '@/lib/api';
+import { User } from '@/types/api';
+import AuthForm from '@/components/AuthForm';
+import Dashboard from '@/components/Dashboard';
 
 export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const savedToken = localStorage.getItem('auth_token');
-    if (savedToken) {
-      setToken(savedToken);
-      setIsLoggedIn(true);
-    }
+    checkAuthStatus();
   }, []);
 
-  const handleLoginSuccess = (accessToken: string) => {
-    setToken(accessToken);
-    setIsLoggedIn(true);
+  const checkAuthStatus = async () => {
+    setIsLoading(true);
+    const savedToken = localStorage.getItem('auth_token');
+    
+    if (savedToken) {
+      apiClient.setToken(savedToken);
+      
+      // Verify token is still valid by fetching user info
+      const response = await apiClient.getCurrentUser();
+      
+      if (response.error) {
+        // Token is invalid, clear it
+        apiClient.clearToken();
+        setIsAuthenticated(false);
+        setUser(null);
+      } else if (response.data) {
+        // Token is valid
+        setUser(response.data);
+        setIsAuthenticated(true);
+      }
+    }
+    
+    setIsLoading(false);
   };
 
-  return (
-    <main className="min-h-screen bg-gray-100 py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Adresur API Testing Interface
-          </h1>
-          <p className="text-gray-600">
-            Test your API endpoints with authentication and real-time data visualization
-          </p>
-        </div>
+  const handleAuthSuccess = async (token: string) => {
+    // Fetch user info after successful auth
+    const response = await apiClient.getCurrentUser();
+    
+    if (response.data) {
+      setUser(response.data);
+      setIsAuthenticated(true);
+    }
+  };
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Login Section */}
-          <div className="lg:col-span-1">
-            <LoginForm onLoginSuccess={handleLoginSuccess} />
-          </div>
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setUser(null);
+  };
 
-          {/* API Testing Section */}
-          <div className="lg:col-span-2">
-            <ApiTester isLoggedIn={isLoggedIn} />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>
-            Make sure your backend API is running on{' '}
-            <code className="bg-gray-200 px-1 rounded">http://localhost:8000</code>
-          </p>
+  // Show loading spinner while checking auth status
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
-    </main>
-  );
+    );
+  }
+
+  // Show auth form if not authenticated
+  if (!isAuthenticated || !user) {
+    return <AuthForm onAuthSuccess={handleAuthSuccess} />;
+  }
+
+  // Show dashboard if authenticated
+  return <Dashboard user={user} onLogout={handleLogout} />;
 } 

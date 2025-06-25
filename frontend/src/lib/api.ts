@@ -157,8 +157,8 @@ class ApiClient {
   }
 
   // Orders
-  async getOrders(): Promise<ApiResponse<Order[]>> {
-    return this.request<Order[]>('/orders/');
+  async getOrders(asCook: boolean = false): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>(`/orders/?as_cook=${asCook}`);
   }
 
   async getOrder(id: number): Promise<ApiResponse<Order>> {
@@ -169,6 +169,13 @@ class ApiClient {
     return this.request<Order>('/orders/', {
       method: 'POST',
       body: JSON.stringify(order),
+    });
+  }
+
+  async createBatchOrder(items: { menu_item_id: number; quantity?: number; special_instructions?: string }[]): Promise<ApiResponse<Order[]>> {
+    return this.request<Order[]>('/orders/batch', {
+      method: 'POST',
+      body: JSON.stringify({ items }),
     });
   }
 
@@ -200,6 +207,20 @@ class ApiClient {
   // Health check
   async healthCheck(): Promise<ApiResponse<{ status: string }>> {
     return this.request<{ status: string }>('/health');
+  }
+
+  // Get current user info
+  async getCurrentUser(): Promise<ApiResponse<User>> {
+    return this.request<User>('/auth/me');
+  }
+
+  // Check if current user has a cook profile
+  async checkCookProfile(): Promise<ApiResponse<CookProfile | null>> {
+    const response = await this.getMyCookProfile();
+    if (response.error && response.status === 404) {
+      return { data: null, status: 404 };
+    }
+    return response;
   }
 }
 

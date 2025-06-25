@@ -99,6 +99,10 @@ class OrderBase(BaseModel):
 class OrderCreate(OrderBase):
     pass
 
+class BatchOrderCreate(BaseModel):
+    """For creating multiple orders at once as a single batch"""
+    items: List[OrderBase]
+
 class OrderUpdate(BaseModel):
     status: Optional[OrderStatus] = None
     special_instructions: Optional[str] = None
@@ -109,8 +113,24 @@ class Order(OrderBase):
     cook_id: int
     status: OrderStatus = OrderStatus.PENDING
     total_price: float
+    batch_order_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# Batch Order Models
+class BatchOrderBase(BaseModel):
+    total_price: float
+    status: OrderStatus = OrderStatus.PENDING
+
+class BatchOrder(BatchOrderBase):
+    id: int
+    buyer_id: int
+    created_at: datetime
+    updated_at: datetime
+    orders: Optional[List[Order]] = None
     
     class Config:
         from_attributes = True

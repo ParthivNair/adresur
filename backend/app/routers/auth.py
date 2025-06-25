@@ -5,6 +5,7 @@ from datetime import timedelta
 from app.database import get_db
 from app.models import UserCreate, UserLogin, User, Token, UserRole
 from app.utils.auth import get_password_hash, verify_password, create_access_token
+from app.dependencies import get_current_user
 from app.config import settings
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -145,4 +146,11 @@ async def login_for_access_token(
         expires_delta=access_token_expires
     )
     
-    return {"access_token": access_token, "token_type": "bearer"} 
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me", response_model=User)
+async def get_current_user_info(
+    current_user: User = Depends(get_current_user)
+):
+    """Get current user information"""
+    return current_user 
